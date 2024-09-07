@@ -1,0 +1,2 @@
+Id,InvoiceId,ProductId,Price,Quantity,Discount,Tax,ProductName
+e1faa1dd-2369-4ef9-927b-2cd108ff957a,f1275bf5-2063-49c7-bf24-ded0cf428e6a,5f1747f6-db29-4d4c-b90c-f8b857877a81,1,1,1,0, ''
