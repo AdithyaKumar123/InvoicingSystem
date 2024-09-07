@@ -224,6 +224,7 @@
             const row = button.closest('tr');
             row.remove();
             cartProducts.delete(productId); // Remove product from the cartProducts set
+            updateTotalAmount();
         }
 
         // Update the total amount including taxes and discounts
