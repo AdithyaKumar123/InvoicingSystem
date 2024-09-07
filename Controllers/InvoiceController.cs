@@ -82,19 +82,31 @@ namespace InvoicingSystem.Controllers
         [HttpGet("{id}")]
         public IActionResult GetInvoiceById(Guid id)
         {
-            var invoice = _invoiceService.GetInvoiceById(id);
-            if (invoice == null)
+            try
             {
-                return NotFound("Invoice not found.");
+                var invoice = _invoiceService.GetInvoiceById(id);
+                if (invoice == null)
+                {
+                    return NotFound("Invoice not found.");
+                }
+                return Ok(invoice);
+            }catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
-            return Ok(invoice);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllInvoices()
         {
-            var invoices = await _invoiceService.GetAllInvoices();
-            return Ok(invoices);
+            try
+            {
+                var invoices = await _invoiceService.GetAllInvoices();
+                return Ok(invoices);
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
     }
 }

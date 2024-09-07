@@ -9,8 +9,14 @@ namespace InvoicingSystem.Repositories
 
         public void AddInvoice(Invoice invoice)
         {
-            var line = $"{invoice.Id},{invoice.CustomerId},{invoice.Date.ToString("yyyy-MM-dd")},{invoice.TotalPrice}, {invoice.PaymentType}";
-            File.AppendAllLines(_invoiceFilePath, new[] { line });
+            try
+            {
+                var line = $"{invoice.Id},{invoice.CustomerId},{invoice.Date.ToString("yyyy-MM-dd")},{invoice.TotalPrice}, {invoice.PaymentType}";
+                File.AppendAllLines(_invoiceFilePath, new[] { line });
+            }catch (Exception ex)
+            {
+                throw new InvalidOperationException("AddInvoice method error:", ex);
+            }
         }
 
         public void AddPurchasedProducts(List<PurchasedProduct> products)
@@ -23,73 +29,97 @@ namespace InvoicingSystem.Repositories
 
         public void AddPurchasedProduct(PurchasedProduct product)
         {
-            var line = $"{product.Id},{product.InvoiceId},{product.ProductId},{product.Price},{product.Quantity},{product.Discount},{product.Tax}, ''";
-            File.AppendAllLines(_purchasedProductsFilePath, new[] { line });
+            try
+            {
+                var line = $"{product.Id},{product.InvoiceId},{product.ProductId},{product.Price},{product.Quantity},{product.Discount},{product.Tax}, ''";
+                File.AppendAllLines(_purchasedProductsFilePath, new[] { line });
+            }catch  (Exception ex)
+            {
+                throw new InvalidOperationException("AddPurchasedProduct method error:", ex);
+            }
         }
 
 
         public Invoice GetInvoiceById(Guid invoiceId)
         {
-            var lines = File.ReadAllLines(_invoiceFilePath);
-            foreach (var line in lines)
+            try
             {
-                var columns = line.Split(',');
-                if (Guid.Parse(columns[0]) == invoiceId)
+                var lines = File.ReadAllLines(_invoiceFilePath);
+                foreach (var line in lines)
                 {
-                    return new Invoice
+                    var columns = line.Split(',');
+                    if (Guid.Parse(columns[0]) == invoiceId)
                     {
-                        Id = Guid.Parse(columns[0]),
-                        CustomerId = Guid.Parse(columns[1]),
-                        Date = DateTime.Parse(columns[2]),
-                        TotalPrice = decimal.Parse(columns[3])
-                    };
+                        return new Invoice
+                        {
+                            Id = Guid.Parse(columns[0]),
+                            CustomerId = Guid.Parse(columns[1]),
+                            Date = DateTime.Parse(columns[2]),
+                            TotalPrice = decimal.Parse(columns[3])
+                        };
+                    }
                 }
+                return null;
+            }catch  (Exception ex)
+            {
+                throw new InvalidOperationException("GetInvoiceById method error:", ex);
             }
-            return null;
         }
 
 
         public List<PurchasedProduct> GetPurchasedProductsByInvoiceId(Guid invoiceId)
         {
-            var products = new List<PurchasedProduct>();
-            var lines = File.ReadAllLines(_purchasedProductsFilePath);
-            foreach (var line in lines.Skip(1))
+            try
             {
-                var columns = line.Split(',');
-                if (Guid.Parse(columns[1]) == invoiceId)
+                var products = new List<PurchasedProduct>();
+                var lines = File.ReadAllLines(_purchasedProductsFilePath);
+                foreach (var line in lines.Skip(1))
                 {
-                    products.Add(new PurchasedProduct
+                    var columns = line.Split(',');
+                    if (Guid.Parse(columns[1]) == invoiceId)
                     {
-                        Id = Guid.Parse(columns[0]),
-                        InvoiceId = Guid.Parse(columns[1]),
-                        ProductId = Guid.Parse(columns[2]),
-                        Price = decimal.Parse(columns[3]),
-                        Quantity = int.Parse(columns[4]),
-                        Discount = decimal.Parse(columns[5]),
-                        Tax = decimal.Parse(columns[6])
-                    });
+                        products.Add(new PurchasedProduct
+                        {
+                            Id = Guid.Parse(columns[0]),
+                            InvoiceId = Guid.Parse(columns[1]),
+                            ProductId = Guid.Parse(columns[2]),
+                            Price = decimal.Parse(columns[3]),
+                            Quantity = int.Parse(columns[4]),
+                            Discount = decimal.Parse(columns[5]),
+                            Tax = decimal.Parse(columns[6])
+                        });
+                    }
                 }
+                return products;
+            }catch(Exception ex)
+            {
+                throw new InvalidOperationException("GetPurchasedProductsByInvoiceId method error:", ex);
             }
-            return products;
         }
 
         public List<Invoice> GetAllInvoices()
         {
-            var invoices = new List<Invoice>();
-            var lines = File.ReadAllLines(_invoiceFilePath);
-            foreach (var line in lines.Skip(1))
+            try
             {
-                var columns = line.Split(',');
-                invoices.Add(new Invoice
+                var invoices = new List<Invoice>();
+                var lines = File.ReadAllLines(_invoiceFilePath);
+                foreach (var line in lines.Skip(1))
                 {
-                    Id = Guid.Parse(columns[0]),
-                    CustomerId = Guid.Parse(columns[1]),
-                    Date = DateTime.Parse(columns[2]),
-                    TotalPrice = decimal.Parse(columns[3]),
-                    PaymentType = columns[4],
-                });
+                    var columns = line.Split(',');
+                    invoices.Add(new Invoice
+                    {
+                        Id = Guid.Parse(columns[0]),
+                        CustomerId = Guid.Parse(columns[1]),
+                        Date = DateTime.Parse(columns[2]),
+                        TotalPrice = decimal.Parse(columns[3]),
+                        PaymentType = columns[4],
+                    });
+                }
+                return invoices;
+            }catch (Exception ex)
+            {
+                throw new InvalidOperationException("GetAllInvoices method error:", ex);
             }
-            return invoices;
         }
     }
 }

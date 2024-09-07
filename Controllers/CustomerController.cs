@@ -35,75 +35,105 @@ namespace InvoicingSystem.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
         {
-            var customers = await _customerRepository.GetAllCustomersAsync();
-            return Ok(customers);
+            try
+            {
+                var customers = await _customerRepository.GetAllCustomersAsync();
+                return Ok(customers);
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         // GET: api/customer/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCustomerById(Guid id)
         {
-            var customer = await _customerRepository.GetCustomerByIdAsync(id);
-            if (customer == null)
+            try
             {
-                return NotFound();
+                var customer = await _customerRepository.GetCustomerByIdAsync(id);
+                if (customer == null)
+                {
+                    return NotFound();
+                }
+                return Ok(customer);
+            }catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
-            return Ok(customer);
         }
 
         // POST: api/customer/addcustomer
         [HttpPost("addcustomer")]
         public async Task<IActionResult> AddCustomer([FromBody] Customer customer)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                customer.Id = Guid.NewGuid();
+                await _customerRepository.AddCustomerAsync(customer);
+                return Ok(customer);
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
-
-            customer.Id = Guid.NewGuid();
-            await _customerRepository.AddCustomerAsync(customer);
-            return Ok(customer);
         }
 
         // PUT: api/customer/updatecustomer
         [HttpPut("updatecustomer")]
         public async Task<IActionResult> UpdateCustomer([FromBody] Customer customer)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
-            }
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
 
-            var existingCustomer = await _customerRepository.GetCustomerByIdAsync(customer.Id);
-            if (existingCustomer == null)
+                var existingCustomer = await _customerRepository.GetCustomerByIdAsync(customer.Id);
+                if (existingCustomer == null)
+                {
+                    return NotFound();
+                }
+
+                await _customerRepository.UpdateCustomerAsync(customer);
+                return Ok(customer);
+            }catch(Exception ex)
             {
-                return NotFound();
+                return StatusCode(500, new { message = ex.Message });
             }
-
-            await _customerRepository.UpdateCustomerAsync(customer);
-            return Ok(customer);
         }
 
         // DELETE: api/customer/deletecustomer/{id}
         [HttpDelete("deletecustomer/{id}")]
         public async Task<IActionResult> DeleteCustomer(Guid id)
         {
-            var existingCustomer = await _customerRepository.GetCustomerByIdAsync(id);
-            if (existingCustomer == null)
+            try
             {
-                return NotFound();
-            }
 
-            var invoices =  _invoiceRepository.GetAllInvoices(); // Assuming you have a method to fetch all invoices
-            bool isCustomerInUse = invoices.Any(invoice => invoice.CustomerId == id);
+                var existingCustomer = await _customerRepository.GetCustomerByIdAsync(id);
+                if (existingCustomer == null)
+                {
+                    return NotFound();
+                }
 
-            if (isCustomerInUse)
+                var invoices = _invoiceRepository.GetAllInvoices(); // Assuming you have a method to fetch all invoices
+                bool isCustomerInUse = invoices.Any(invoice => invoice.CustomerId == id);
+
+                if (isCustomerInUse)
+                {
+                    // Return a response indicating that the customer cannot be deleted
+                    return BadRequest($"Cannot delete customer '{existingCustomer.Name}' because it is associated with existing invoices.");
+                }
+                await _customerRepository.DeleteCustomerAsync(id);
+                return NoContent();
+            }catch(Exception ex)
             {
-                // Return a response indicating that the customer cannot be deleted
-                return BadRequest($"Cannot delete customer '{existingCustomer.Name}' because it is associated with existing invoices.");
+                return StatusCode(500, new { message = ex.Message });
             }
-            await _customerRepository.DeleteCustomerAsync(id);
-            return NoContent();
         }
     
 }

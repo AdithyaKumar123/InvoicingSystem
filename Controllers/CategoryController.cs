@@ -33,30 +33,50 @@ namespace InvoicingSystem.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-            var categories = await _categoryRepository.GetAllCategoriesAsync();
-            return Ok(categories);
+            try
+            {
+                var categories = await _categoryRepository.GetAllCategoriesAsync();
+                return Ok(categories);
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(Guid id)
         {
-            var category = await _categoryRepository.GetCategoryByIdAsync(id);
-            if (category == null)
+            try
             {
-                return NotFound();
+                var category = await _categoryRepository.GetCategoryByIdAsync(id);
+                if (category == null)
+                {
+                    return NotFound();
+                }
+                return Ok(category);
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
-            return Ok(category);
         }
 
         [HttpPost("add")]
         public async Task<IActionResult> AddCategory([FromBody] Category category)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                await _categoryRepository.AddCategoryAsync(category);
+                return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+
+            }catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
-            await _categoryRepository.AddCategoryAsync(category);
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
         }
 
         [HttpPut("update")]
@@ -76,8 +96,16 @@ namespace InvoicingSystem.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
-           string response =  await _categoryRepository.DeleteCategoryAsync(id);
-            return Ok(new { success = true, message = response });
+            try
+            {
+                string response = await _categoryRepository.DeleteCategoryAsync(id);
+                return Ok(new { success = true, message = response });
+            }
+            catch(Exception ex) 
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+          
         }
     }
 }
