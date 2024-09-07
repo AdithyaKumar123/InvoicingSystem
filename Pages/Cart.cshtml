@@ -323,7 +323,7 @@ async function generateInvoice() {
 
         if (response.ok) {
              swal.fire({text:'Invoice created successfully', icon:'success'});
-         //   window.location.href = '/invoice'; // Redirect or update UI accordingly
+            window.location.href = '/api/invoice/view'; 
         } else {
             const errorText = await response.text();
               swal.fire({text:`Error creating invoice: ${errorText}`, icon:'error'});
